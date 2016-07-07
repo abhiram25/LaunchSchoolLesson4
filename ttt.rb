@@ -1,5 +1,3 @@
-require 'pry'
-
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[2, 5, 8], [3, 5, 7], [1, 4, 7]] +
                 [[3, 6, 9], [1, 5, 9]]
@@ -56,7 +54,7 @@ def join_or(array)
   str
 end
 
-def player_places_piece(brd) # brd = board
+def player_places_piece(brd)
   square = ''
   loop do
     prompt "Choose a position to place the piece #{join_or(empty_squares(brd))}"
@@ -71,22 +69,14 @@ def check_five(board)
   board.values_at(5) == [INITIAL_MARKER]
 end
 
-def both_two_in_a_row(line, board)
-  board.values_at(*line).count(PLAYER_MARKER) == 2 &&
-    board.values_at(*line).count(COMPUTER_MARKER) == 2
-end
-
 def two_in_row(line, board, marker)
   board.values_at(*line).count(marker) == 2
 end
 
 def find_at_risk_square(line, board, marker)
-  if both_two_in_a_row(line, board)
+  nil
+  if two_in_row(line, board, marker)
     board.select { |k, v| line.include?(k) && v == INITIAL_MARKER }.keys.first
-  elsif two_in_row(line, board, marker)
-    board.select { |k, v| line.include?(k) && v == INITIAL_MARKER }.keys.first
-  else
-    return nil
   end
 end
 
@@ -108,14 +98,8 @@ end
 
 def computer_move!(brd)
   square = nil
-
-  if !square
-    square = offense(brd, square)
-  end
-
-  if !square
-    square = defense(brd, square)
-  end
+  square ||= offense(brd, square)
+  square ||= defense(brd, square)
 
   if !square
     if check_five(brd)
@@ -176,8 +160,18 @@ player_score = 0
 
 loop do
   board = initialize_board
-  prompt "Would you like to player or computer to go first?"
-  current_player = gets.chomp
+  current_player = ''
+  answer = ''
+  loop do
+    prompt "Would you like to player or computer to go first?"
+    current_player = gets.chomp
+
+    if current_player == "player" || current_player == "computer"
+      break
+    else
+      prompt "Please type in player or computer"
+    end
+  end
 
   loop do
     display_board(board)
@@ -208,7 +202,7 @@ loop do
   prompt "Computer: #{computer_score}"
 
   if series_winner(computer_score)
-    prompt "#{detect_winner} won the series"
+    prompt "#{detect_winner(board)} won the series"
     break
   end
 
@@ -217,10 +211,19 @@ loop do
     break
   end
 
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
+  loop do
+    prompt "Play again? (y or n)"
+    answer = gets.chomp
 
-  break unless answer.downcase.start_with?("y")
+    if answer == "y"
+      break
+    elsif answer == "n"
+      break
+    else
+      prompt "Please type y to continue playing or n to quit playing"
+    end
+  end
+  break unless answer == "y"
 end
 
 prompt "Thanks for playing Tic Tac Toe, Goodbye!"
