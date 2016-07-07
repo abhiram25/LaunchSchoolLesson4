@@ -8,7 +8,7 @@ INITIAL_MARKER = " ".freeze
 PLAYER_MARKER = "X".freeze
 COMPUTER_MARKER = "O".freeze
 
-CHOOSE = "choose"
+FIRST_PLAYER = "choose".freeze
 
 def prompt(message)
   puts "=> #{message}"
@@ -56,7 +56,7 @@ def join_or(array)
   str
 end
 
-def place_piece(brd) # brd = board
+def player_places_piece(brd) # brd = board
   square = ''
   loop do
     prompt "Choose a position to place the piece #{join_or(empty_squares(brd))}"
@@ -71,43 +71,78 @@ def check_five(board)
   board.values_at(5) == [INITIAL_MARKER]
 end
 
+def both_two_in_a_row(line, board)
+  board.values_at(*line).count(PLAYER_MARKER) == 2 &&
+    board.values_at(*line).count(COMPUTER_MARKER) == 2
+end
+
+def two_in_row(line, board, marker)
+  board.values_at(*line).count(marker) == 2
+end
+
 def find_at_risk_square(line, board, marker)
-  if board.values_at(*line).count(PLAYER_MARKER) == 2 &&
-     board.values_at(*line).count(COMPUTER_MARKER) == 2
+  if both_two_in_a_row(line, board)
     board.select { |k, v| line.include?(k) && v == INITIAL_MARKER }.keys.first
-  elsif board.values_at(*line).count(marker) == 2
+  elsif two_in_row(line, board, marker)
     board.select { |k, v| line.include?(k) && v == INITIAL_MARKER }.keys.first
   else
     return nil
   end
 end
 
-def computer_move!(brd)
-  square = nil
-
+def offense(brd, square)
   WINNING_LINES.each do |line|
     square = find_at_risk_square(line, brd, COMPUTER_MARKER)
     break if square
   end
+  square
+end
+
+def defense(brd, square)
+  WINNING_LINES.each do |line|
+    square = find_at_risk_square(line, brd, PLAYER_MARKER)
+    break if square
+  end
+  square
+end
+
+def computer_move!(brd)
+  square = nil
 
   if !square
-    WINNING_LINES.each do |line|
-      square = find_at_risk_square(line, brd, PLAYER_MARKER)
-      break if square
-    end
+    square = offense(brd, square)
+  end
+
+  if !square
+    square = defense(brd, square)
   end
 
   if !square
     if check_five(brd)
       square = 5
+    elsif !square
+      square = empty_squares(brd).sample
     end
   end
 
-  if !square
-    square = empty_squares(brd).sample
-  end
-
   brd[square] = COMPUTER_MARKER
+end
+
+def alternate_player(current_player)
+  current_player = if current_player == "player"
+                     "computer"
+                   else
+                     "player"
+                   end
+  current_player
+end
+
+def place_piece!(brd, current_player)
+  if current_player == "player"
+    player_places_piece(brd)
+  else
+    computer_move!(brd)
+  end
 end
 
 def board_full?(brd)
@@ -141,15 +176,13 @@ player_score = 0
 
 loop do
   board = initialize_board
+  prompt "Would you like to player or computer to go first?"
+  current_player = gets.chomp
 
   loop do
     display_board(board)
-
-    player_places_piece(board)
-
-    break if someone_won?(board) || board_full?(board)
-
-    computer_move!(board)
+    place_piece!(board, current_player)
+    current_player = alternate_player(current_player)
 
     break if someone_won?(board) || board_full?(board)
   end
@@ -165,7 +198,9 @@ loop do
 
   if detect_winner(board) == "Player"
     player_score += 1
-  else
+  end
+
+  if detect_winner(board) == "Computer"
     computer_score += 1
   end
 
