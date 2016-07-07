@@ -74,10 +74,10 @@ def two_in_row(line, board, marker)
 end
 
 def find_at_risk_square(line, board, marker)
-  nil
   if two_in_row(line, board, marker)
     board.select { |k, v| line.include?(k) && v == INITIAL_MARKER }.keys.first
   end
+  nil
 end
 
 def offense(brd, square)
