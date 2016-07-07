@@ -1,3 +1,5 @@
+require 'pry'
+
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[2, 5, 8], [3, 5, 7], [1, 4, 7]] +
                 [[3, 6, 9], [1, 5, 9]]
@@ -77,7 +79,6 @@ def find_at_risk_square(line, board, marker)
   if two_in_row(line, board, marker)
     board.select { |k, v| line.include?(k) && v == INITIAL_MARKER }.keys.first
   end
-  nil
 end
 
 def offense(brd, square)
@@ -100,25 +101,17 @@ def computer_move!(brd)
   square = nil
   square ||= offense(brd, square)
   square ||= defense(brd, square)
-
-  if !square
-    if check_five(brd)
-      square = 5
-    elsif !square
-      square = empty_squares(brd).sample
-    end
-  end
-
+  square ||= 5 if check_five(brd)
+  square ||= empty_squares(brd).sample
   brd[square] = COMPUTER_MARKER
 end
 
 def alternate_player(current_player)
-  current_player = if current_player == "player"
-                     "computer"
-                   else
-                     "player"
-                   end
-  current_player
+  if current_player == "player"
+    "computer"
+  else
+    "player"
+  end
 end
 
 def place_piece!(brd, current_player)
@@ -164,7 +157,7 @@ loop do
   answer = ''
   loop do
     prompt "Would you like to player or computer to go first?"
-    current_player = gets.chomp
+    current_player = gets.chomp.downcase
 
     if current_player == "player" || current_player == "computer"
       break
