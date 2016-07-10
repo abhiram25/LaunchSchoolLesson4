@@ -1,5 +1,3 @@
-require 'pry'
-
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[2, 5, 8], [3, 5, 7], [1, 4, 7]] +
                 [[3, 6, 9], [1, 5, 9]]
@@ -206,17 +204,15 @@ loop do
 
   loop do
     prompt "Play again? (y or n)"
-    answer = gets.chomp
+    answer = gets.chomp.downcase
 
     if answer == "y"
       break
     elsif answer == "n"
-      break
+      prompt "Thanks for playing Tic Tac Toe, Goodbye!"
+      exit
     else
       prompt "Please type y to continue playing or n to quit playing"
     end
   end
-  break unless answer == "y"
 end
-
-prompt "Thanks for playing Tic Tac Toe, Goodbye!"
