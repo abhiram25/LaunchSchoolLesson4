@@ -47,7 +47,7 @@ end
 def join_or(array)
   if array.size > 2
     str = array.join(", ")
-    str.gsub!(str[-1], "OR #{str[-1]}")
+    str.gsub!(str[-1], "or #{str[-1]}")
   else
     str = array.join(" OR ")
   end
