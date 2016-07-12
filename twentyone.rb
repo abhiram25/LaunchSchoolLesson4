@@ -1,3 +1,5 @@
+require 'pry'
+
 system 'clear'
 
 player = []
@@ -14,6 +16,14 @@ card_values = {
   "Jack" => 10, "Queen" => 10, "King" => 10,
   "Ace" => 11, "Ace_one" => 1
 }
+
+def calculate_score(card_values, player, score)
+  score = 0
+  player.each_with_index do |_, index|
+    score += card_values[player[index][1]]
+  end
+  score
+end
 
 def twenty_one?(score)
   score == 21
@@ -33,32 +43,47 @@ def ace_one?(player)
   end
 end
 
-def ace_to_one(player, score)
+def count_aces(player)
   aces = 0
 
   player.each_with_index do |_, index|
     aces += 1 if player[index][1] == "Ace"
   end
+  aces
+end
+
+def change_one_ace(player)
+  player.each_with_index do |_, index|
+    if player[index][1] == "Ace"
+      player[index][1] = "Ace_one"
+      break
+    end
+  end
+end
+
+def change_all_aces(player)
+  player.each_with_index do |_, index|
+    if player[index][1] == "Ace"
+      player[index][1] = "Ace_one"
+    end
+  end
+end
+
+def auto_change_ace(player, score)
+  if score < 31
+    change_one_ace(player)
+  else
+    change_all_aces(player)
+  end
+end
+
+def ace_to_one(player, score)
+  aces = count_aces(player)
 
   if aces == 1 && bust?(score)
-    player.each_with_index do |_, index|
-      if player[index][1] == "Ace"
-        player[index][1] = "Ace_one"
-      end
-    end
-  elsif aces > 1 && score < 31
-    player.each_with_index do |_, index|
-      if player[index][1] == "Ace"
-        player[index][1] = "Ace_one"
-        break
-      end
-    end
-  elsif aces > 1 && score > 31
-    player.each_with_index do |_, index|
-      if player[index][1] == "Ace"
-        player[index][1] = "Ace_one"
-      end
-    end
+    change_all_aces(player)
+  elsif aces > 1
+    auto_change_ace(player, score)
   end
 end
 
@@ -99,20 +124,15 @@ end
 
 def winner(player, dealer, player_score, dealer_score)
   if player_score > dealer_score
-    # Print the player's cards
-    str = join_and(player)
-
-    puts "You had #{str}"
+    puts "You had #{join_and(player)} and Dealer had #{join_and(dealer)}"
     puts "You have #{player_score} and Dealer has #{dealer_score}"
     puts "Congrats! You won"
   elsif dealer_score > player_score
-    str = join_and(dealer)
-
-    puts "Dealer had #{str}"
-    puts "You have #{player_score} and Dealer has #{dealer_score}"
+    puts "Dealer had #{join_and(dealer)} and You had #{join_and(player)}"
+    puts "Dealer had #{dealer_score} and You have #{player_score}"
     puts "Dealer won"
   else
-    # Print the player's cards
+    puts "You had #{join_and(player)} and dealer had #{join_and(dealer)}"
     puts "You have #{player_score} and Dealer has #{dealer_score}"
     puts "It's a tie"
   end
@@ -149,13 +169,14 @@ loop do
 
   decision = ''
 
-  player.each_with_index do |_, index|
-    player_score += card_values[player[index][1]]
+  player_score = calculate_score(card_values, player, player_score)
+  ace_to_one(player, player_score)
+
+  if ace_one?(player)
+    player_score = calculate_score(card_values, player, player_score)
   end
 
-  dealer.each_with_index do |_, index|
-    dealer_score += card_values[dealer[index][1]]
-  end
+  dealer_score = calculate_score(card_values, dealer, dealer_score)
 
   if twenty_one?(dealer_score)
     prompt "Dealer has: #{dealer[0][1]} and #{dealer[1][1]}"
@@ -186,19 +207,12 @@ loop do
 
       player_hit(player, cards)
 
-      player.each_with_index do |_, index|
-        player_score += card_values[player[index][1]]
-      end
-
-      # Problem: Do calculation after aces to one
+      player_score = calculate_score(card_values, player, player_score)
 
       ace_to_one(player, player_score)
 
       if ace_one?(player)
-        player_score = 0
-        player.each_with_index do |_, index|
-          player_score += card_values[player[index][1]]
-        end
+        player_score = calculate_score(card_values, player, player_score)
       end
 
       puts "You have #{player_score}"
@@ -219,29 +233,20 @@ loop do
     end
   end
 
-  # Dealer Turn
   loop do
     break if twenty_one?(player_score)
     break if twenty_one?(dealer_score)
     break if bust?(player_score)
-    dealer_score = 0
-
-    dealer.each_with_index do |_, index|
-      dealer_score += card_values[dealer[index][1]]
-    end
+    dealer_score = calculate_score(card_values, dealer, dealer_score)
 
     ace_to_one(dealer, dealer_score)
 
     if ace_one?(dealer)
-      dealer_score = 0
-      dealer.each_with_index do |_, index|
-        dealer_score += card_values[dealer[index][1]]
-      end
+      dealer_score = calculate_score(card_values, dealer, dealer_score)
     end
 
     if dealer_score < 17
       dealer_hit(dealer, cards)
-
     elsif bust?(dealer_score)
       puts "Dealer busted"
       str = join_and(dealer)
