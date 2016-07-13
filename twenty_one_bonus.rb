@@ -115,7 +115,17 @@ def play_again?
   answer.downcase.start_with?('y')
 end
 
+def update_score(player)
+  player
+end
+
 loop do
+  # Cache the updated score
+
+  player = update_score(player)
+
+  dealer = update_score(dealer)
+
   prompt "Welcome to #{GAME_SCORE}!"
   # initialize vars
   deck = initialize_deck
@@ -129,9 +139,8 @@ loop do
   end
 
   prompt "Dealer has #{dealer_cards[0]} and ?"
-  # rubocop:disable Metrics/LineLength
-  prompt "You have: #{player_cards[0]} and #{player_cards[1]}, for a total of #{total(player_cards)}."
-  # rubocop:enable Metrics/LineLength
+  prompt "You have: #{player_cards[0]} and #{player_cards[1]}, \
+  for a total of #{total(player_cards)}."
 
   # player turn
   loop do
@@ -200,6 +209,10 @@ loop do
   when :dealer
     dealer += 1
   end
+
+  update_score(player)
+
+  update_score(dealer)
 
   display_winner(dealer_cards, player_cards, dealer_total, player_total)
   display_result(dealer_cards, player_cards, player, dealer)
