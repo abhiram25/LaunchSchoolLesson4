@@ -1,5 +1,3 @@
-require 'pry'
-
 system 'clear'
 
 SUITS = ['H', 'D', 'S', 'C'].freeze
