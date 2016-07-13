@@ -13,8 +13,20 @@ player = 0
 
 dealer = 0
 
+game_score = 0
+
+loop do
+  prompt "What Would you like to play to?"
+  game_score = gets.chomp.to_i
+  if game_score < 21
+    prompt "Please type in 21 or greater"
+  else
+    break
+  end
+end
+
 prompt "What Would you like to play to?"
-GAME_SCORE = gets.chomp.to_i
+GAME_SCORE = game_score
 DEALER_MAX = GAME_SCORE - 4
 
 def initialize_deck
